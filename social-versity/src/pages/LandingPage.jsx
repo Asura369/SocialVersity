@@ -1,8 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
+import { useVersion } from '../context/VersionContext';
 
 export function LandingPage() {
+    const version = useVersion();
+
     return (
         <div className="min-h-screen bg-white flex flex-col">
             <header className="px-4 lg:px-8 h-20 flex items-center justify-between border-b border-gray-100">
@@ -16,7 +19,7 @@ export function LandingPage() {
                 </div>
                 <div className="flex gap-4">
                     <Button variant="ghost">About</Button>
-                    <Link to="/onboarding">
+                    <Link to={`/${version}/onboarding`}>
                         <Button>Log in with University Email</Button>
                     </Link>
                 </div>
@@ -33,7 +36,7 @@ export function LandingPage() {
                             The unified platform for students to discover events, join groups, and find their community. Verified and safe.
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                            <Link to="/onboarding">
+                            <Link to={`/${version}/onboarding`}>
                                 <Button size="lg" className="w-full sm:w-auto">Get Started</Button>
                             </Link>
                             <Button size="lg" variant="secondary" className="w-full sm:w-auto">View Demo</Button>

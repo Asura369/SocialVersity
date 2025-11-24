@@ -5,6 +5,7 @@ import { Input } from '../components/ui/Input';
 import { Card, CardBody } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
+import { useVersion } from '../context/VersionContext';
 
 const steps = [
     { id: 1, title: 'Verification' },
@@ -18,6 +19,7 @@ const interestsList = [
 
 export function Onboarding() {
     const navigate = useNavigate();
+    const version = useVersion();
     const [currentStep, setCurrentStep] = useState(1);
     const [selectedInterests, setSelectedInterests] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -28,7 +30,7 @@ export function Onboarding() {
         } else {
             setIsLoading(true);
             setTimeout(() => {
-                navigate('/');
+                navigate(`/${version}`);
             }, 1500);
         }
     };
@@ -117,8 +119,8 @@ export function Onboarding() {
                                         key={interest}
                                         onClick={() => toggleInterest(interest)}
                                         className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${selectedInterests.includes(interest)
-                                                ? 'bg-primary-100 text-primary-700 ring-2 ring-primary-500'
-                                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                            ? 'bg-primary-100 text-primary-700 ring-2 ring-primary-500'
+                                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                             }`}
                                     >
                                         {interest}

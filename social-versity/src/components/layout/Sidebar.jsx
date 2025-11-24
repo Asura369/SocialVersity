@@ -10,25 +10,28 @@ import {
     ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 import { cn } from '../../utils/cn';
+import { useVersion } from '../../context/VersionContext';
 
 const navigation = [
-    { name: 'Dashboard', href: '/', icon: HomeIcon },
-    { name: 'Groups', href: '/groups', icon: UserGroupIcon },
-    { name: 'Events', href: '/events', icon: CalendarIcon },
-    { name: 'Map', href: '/map', icon: MapIcon },
-    { name: 'Messages', href: '/messages', icon: ChatBubbleLeftRightIcon },
-    { name: 'Profile', href: '/profile', icon: UserIcon },
-    { name: 'Safety', href: '/safety', icon: ShieldCheckIcon },
+    { name: 'Dashboard', href: '', icon: HomeIcon },
+    { name: 'Groups', href: 'groups', icon: UserGroupIcon },
+    { name: 'Events', href: 'events', icon: CalendarIcon },
+    { name: 'Map', href: 'map', icon: MapIcon },
+    { name: 'Messages', href: 'messages', icon: ChatBubbleLeftRightIcon },
+    { name: 'Profile', href: 'profile', icon: UserIcon },
+    { name: 'Safety', href: 'safety', icon: ShieldCheckIcon },
 ];
 
 export function Sidebar({ className }) {
+    const version = useVersion();
+
     return (
         <aside className={cn("w-64 bg-white border-r border-gray-200 hidden lg:flex flex-col h-[calc(100vh-4rem)] sticky top-16", className)}>
             <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
                 {navigation.map((item) => (
                     <NavLink
                         key={item.name}
-                        to={item.href}
+                        to={`/${version}/${item.href}`}
                         className={({ isActive }) => cn(
                             'group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors',
                             isActive

@@ -3,8 +3,11 @@ import { Link } from 'react-router-dom';
 import { MagnifyingGlassIcon, BellIcon } from '@heroicons/react/24/outline';
 import { Avatar } from '../ui/Avatar';
 import { currentUser } from '../../data/mockData';
+import { useVersion } from '../../context/VersionContext';
 
 export function Navbar({ onMenuClick }) {
+    const version = useVersion();
+
     return (
         <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
             <div className="px-4 sm:px-6 lg:px-8">
@@ -21,7 +24,7 @@ export function Navbar({ onMenuClick }) {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                             </svg>
                         </button>
-                        <Link to="/" className="flex items-center gap-2 ml-2 lg:ml-0">
+                        <Link to={`/${version}`} className="flex items-center gap-2 ml-2 lg:ml-0">
                             <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-secondary-500 rounded-lg flex items-center justify-center text-white font-bold text-lg">
                                 S
                             </div>
