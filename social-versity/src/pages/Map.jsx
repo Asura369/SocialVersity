@@ -1,54 +1,120 @@
 import React, { useState } from 'react';
 import { Card, CardBody } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
-import { MapPinIcon, BuildingLibraryIcon, AcademicCapIcon } from '@heroicons/react/24/solid';
-
-const locations = [
-    { id: 1, name: 'Student Center', type: 'Social', x: 50, y: 40, description: 'Main hub for student activities, dining, and lounges.' },
-    { id: 2, name: 'Engineering Hall', type: 'Academic', x: 70, y: 60, description: 'Labs, classrooms, and the robotics workshop.' },
-    { id: 3, name: 'Main Library', type: 'Study', x: 30, y: 50, description: '24/7 study areas and quiet zones.' },
-    { id: 4, name: 'Gymnasium', type: 'Sports', x: 80, y: 30, description: 'Fitness center, basketball courts, and pool.' },
-];
+import { Button } from '../components/ui/Button';
+import { mapLocations } from '../data/mockData';
+import { MapPinIcon, ClockIcon, UserGroupIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
+import { useVersion } from '../context/VersionContext';
+import { Modal } from '../components/ui/Modal';
 
 export function Map() {
+    const version = useVersion();
     const [selectedLocation, setSelectedLocation] = useState(null);
+    const [isHelpOpen, setIsHelpOpen] = useState(false);
 
     return (
         <div className="h-[calc(100vh-8rem)] flex flex-col lg:flex-row gap-6">
             {/* Map Container */}
-            <div className="flex-1 bg-blue-50 rounded-xl border border-blue-100 relative overflow-hidden shadow-inner group">
-                {/* Static SVG Map Background */}
-                <div className="absolute inset-0 opacity-20 bg-[radial-gradient(#3b82f6_1px,transparent_1px)] [background-size:16px_16px]" />
+            <div className="flex-1 bg-white rounded-xl border border-gray-200 shadow-sm relative overflow-hidden">
+                {/* Map Controls / Help (V2) */}
+                {version === 'v2' && (
+                    <div className="absolute top-4 right-4 z-10">
+                        <button
+                            onClick={() => setIsHelpOpen(true)}
+                            className="bg-white p-2 rounded-full shadow-md text-gray-600 hover:text-primary-600 transition-colors"
+                            title="Map Help"
+                        >
+                            <QuestionMarkCircleIcon className="h-6 w-6" />
+                        </button>
+                    </div>
+                )}
 
-                {/* Mock Campus Shapes */}
-                <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 100 100" preserveAspectRatio="none">
-                    <path d="M20,40 Q40,10 60,40 T90,40" fill="none" stroke="#93c5fd" strokeWidth="2" />
-                    <path d="M10,60 Q50,90 90,60" fill="none" stroke="#93c5fd" strokeWidth="2" />
-                    <rect x="25" y="45" width="10" height="10" fill="#dbeafe" rx="2" />
-                    <rect x="65" y="55" width="12" height="8" fill="#dbeafe" rx="2" />
-                    <circle cx="50" cy="40" r="5" fill="#dbeafe" />
-                </svg>
+                <div className="absolute inset-0 bg-gray-50 flex items-center justify-center">
+                    {/* Simplified SVG Map */}
+                    <svg viewBox="0 0 800 600" className="w-full h-full">
+                        <defs>
+                            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#e5e7eb" strokeWidth="1" />
+                            </pattern>
+                        </defs>
+                        <rect width="100%" height="100%" fill="url(#grid)" />
 
-                {/* Interactive Pins */}
-                {locations.map(loc => (
-                    <button
-                        key={loc.id}
-                        className={`absolute transform -translate-x-1/2 -translate-y-1/2 transition-all duration-300 hover:scale-110 ${selectedLocation?.id === loc.id ? 'scale-125 z-10' : 'z-0'
-                            }`}
-                        style={{ left: `${loc.x}%`, top: `${loc.y}%` }}
-                        onClick={() => setSelectedLocation(loc)}
-                    >
-                        <div className={`p-2 rounded-full shadow-lg ${selectedLocation?.id === loc.id ? 'bg-primary-600 text-white' : 'bg-white text-primary-600'
-                            }`}>
-                            <MapPinIcon className="h-6 w-6" />
+                        {/* Campus Buildings */}
+                        {/* Student Center */}
+                        <path
+                            d="M 300 200 L 500 200 L 500 350 L 300 350 Z"
+                            fill="#dbeafe"
+                            stroke="#3b82f6"
+                            strokeWidth="2"
+                            className="cursor-pointer hover:fill-blue-200 transition-colors"
+                            onClick={() => setSelectedLocation(mapLocations.find(l => l.id === 1))}
+                        />
+
+                        {/* Library */}
+                        <path
+                            d="M 100 100 L 250 100 L 250 250 L 100 250 Z"
+                            fill="#dcfce7"
+                            stroke="#22c55e"
+                            strokeWidth="2"
+                            className="cursor-pointer hover:fill-green-200 transition-colors"
+                            onClick={() => setSelectedLocation(mapLocations.find(l => l.id === 2))}
+                        />
+
+                        {/* Gym */}
+                        <path
+                            d="M 550 100 L 700 100 L 700 200 L 550 200 Z"
+                            fill="#fee2e2"
+                            stroke="#ef4444"
+                            strokeWidth="2"
+                            className="cursor-pointer hover:fill-red-200 transition-colors"
+                            onClick={() => setSelectedLocation(mapLocations.find(l => l.id === 3))}
+                        />
+
+                        {/* Pins */}
+                        {mapLocations.map(loc => (
+                            <g
+                                key={loc.id}
+                                transform={`translate(${loc.coordinates.x}, ${loc.coordinates.y})`}
+                                className="cursor-pointer group"
+                                onClick={() => setSelectedLocation(loc)}
+                            >
+                                <circle r="6" fill={loc.color === 'blue' ? '#3b82f6' : loc.color === 'green' ? '#22c55e' : '#ef4444'} className="animate-pulse" />
+                                <circle r="12" fill={loc.color === 'blue' ? '#3b82f6' : loc.color === 'green' ? '#22c55e' : '#ef4444'} opacity="0.2" />
+                                <text y="-15" x="0" textAnchor="middle" className="text-xs font-bold fill-gray-700 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none bg-white">
+                                    {loc.name}
+                                </text>
+                            </g>
+                        ))}
+                    </svg>
+                </div>
+
+                {/* V2: Help Modal */}
+                <Modal
+                    isOpen={isHelpOpen}
+                    onClose={() => setIsHelpOpen(false)}
+                    title="How to use the Map"
+                >
+                    <div className="space-y-4">
+                        <p className="text-gray-600">Explore the campus map to find events, study spots, and facilities.</p>
+                        <ul className="space-y-2 text-sm text-gray-600">
+                            <li className="flex items-center gap-2">
+                                <MapPinIcon className="h-5 w-5 text-primary-500" />
+                                <span>Click on pins or buildings to view details.</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                                <UserGroupIcon className="h-5 w-5 text-secondary-500" />
+                                <span>Check real-time crowd levels before you go.</span>
+                            </li>
+                            <li className="flex items-center gap-2">
+                                <ClockIcon className="h-5 w-5 text-gray-500" />
+                                <span>View opening hours and upcoming events.</span>
+                            </li>
+                        </ul>
+                        <div className="pt-2 flex justify-end">
+                            <Button onClick={() => setIsHelpOpen(false)}>Got it</Button>
                         </div>
-                        {selectedLocation?.id === loc.id && (
-                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 bg-white px-3 py-1 rounded-full shadow-md text-xs font-bold whitespace-nowrap">
-                                {loc.name}
-                            </div>
-                        )}
-                    </button>
-                ))}
+                    </div>
+                </Modal>
             </div>
 
             {/* Sidebar / Details Panel */}

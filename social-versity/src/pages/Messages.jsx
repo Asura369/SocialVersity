@@ -4,9 +4,15 @@ import { Avatar } from '../components/ui/Avatar';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { messages as initialMessages } from '../data/mockData';
-import { PaperAirplaneIcon, PhoneIcon, VideoCameraIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+import { PaperAirplaneIcon, PhoneIcon, VideoCameraIcon, InformationCircleIcon, ArrowLeftIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { useVersion } from '../context/VersionContext';
+import { useToast } from '../context/ToastContext';
+import { ConfirmationModal } from '../components/ui/Modal';
+import { cn } from '../utils/cn';
 
 export function Messages() {
+    const version = useVersion();
+    const { addToast } = useToast();
     const [activeChat, setActiveChat] = useState(initialMessages[0]);
     const [replyText, setReplyText] = useState('');
     const [chatHistory, setChatHistory] = useState([
@@ -15,12 +21,29 @@ export function Messages() {
         { id: 3, sender: 'them', text: 'Not yet, still looking for a designer.', time: '9:33 AM' },
     ]);
 
+    // V2: Mobile Navigation State
+    const [isMobileChatOpen, setIsMobileChatOpen] = useState(false);
+
+    // V2: Delete Message State
+    const [messageToDelete, setMessageToDelete] = useState(null);
+
+    const handleChatSelect = (chat) => {
+        setActiveChat(chat);
+        if (version === 'v2') {
+            setIsMobileChatOpen(true);
+        }
+    };
+
+    const handleBackToInbox = () => {
+        setIsMobileChatOpen(false);
+    };
+
     const handleSend = (e) => {
         e.preventDefault();
         if (!replyText.trim()) return;
 
         const newMessage = {
-            id: chatHistory.length + 1,
+            id: Date.now(),
             sender: 'me',
             text: replyText,
             time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -30,10 +53,29 @@ export function Messages() {
         setReplyText('');
     };
 
+    const handleDeleteClick = (msg) => {
+        setMessageToDelete(msg);
+    };
+
+    const confirmDelete = () => {
+        setChatHistory(chatHistory.filter(m => m.id !== messageToDelete.id));
+        addToast('Message deleted', 'success');
+        setMessageToDelete(null);
+    };
+
+    // V2: Conditional Classes for Mobile View
+    const inboxClasses = version === 'v2'
+        ? cn("w-full md:w-80 border-r border-gray-200 flex flex-col bg-white", isMobileChatOpen ? "hidden md:flex" : "flex")
+        : "w-full md:w-80 border-r border-gray-200 flex flex-col bg-white";
+
+    const chatClasses = version === 'v2'
+        ? cn("flex-1 flex-col bg-white", isMobileChatOpen ? "flex fixed inset-0 z-50 md:static" : "hidden md:flex")
+        : "hidden md:flex flex-1 flex-col bg-white";
+
     return (
         <Card className="h-[calc(100vh-8rem)] flex overflow-hidden border-gray-200">
             {/* Sidebar / Inbox */}
-            <div className="w-full md:w-80 border-r border-gray-200 flex flex-col bg-white">
+            <div className={inboxClasses}>
                 <div className="p-4 border-b border-gray-100">
                     <h2 className="text-lg font-bold text-gray-900 mb-4">Messages</h2>
                     <Input placeholder="Search messages..." className="bg-gray-50" />
@@ -42,7 +84,7 @@ export function Messages() {
                     {initialMessages.map(msg => (
                         <button
                             key={msg.id}
-                            onClick={() => setActiveChat(msg)}
+                            onClick={() => handleChatSelect(msg)}
                             className={`w-full p-4 flex items-start gap-3 hover:bg-gray-50 transition-colors text-left ${activeChat.id === msg.id ? 'bg-primary-50 hover:bg-primary-50' : ''
                                 }`}
                         >
@@ -67,10 +109,18 @@ export function Messages() {
             </div>
 
             {/* Chat Window */}
-            <div className="hidden md:flex flex-1 flex-col bg-white">
+            <div className={chatClasses}>
                 {/* Chat Header */}
-                <div className="h-16 px-6 border-b border-gray-100 flex items-center justify-between">
+                <div className="h-16 px-4 md:px-6 border-b border-gray-100 flex items-center justify-between bg-white">
                     <div className="flex items-center gap-3">
+                        {version === 'v2' && (
+                            <button
+                                onClick={handleBackToInbox}
+                                className="md:hidden p-1 -ml-2 text-gray-500 hover:text-gray-700"
+                            >
+                                <ArrowLeftIcon className="h-6 w-6" />
+                            </button>
+                        )}
                         <Avatar src={activeChat.avatar} alt={activeChat.senderName} size="sm" />
                         <div>
                             <h3 className="text-sm font-bold text-gray-900">{activeChat.senderName}</h3>
@@ -88,23 +138,36 @@ export function Messages() {
                 </div>
 
                 {/* Messages Area */}
-                <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50">
+                <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 bg-gray-50">
                     {chatHistory.map(msg => (
                         <div
                             key={msg.id}
-                            className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}
+                            className={`flex group ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}
                         >
-                            <div
-                                className={`max-w-[70%] rounded-2xl px-4 py-2 text-sm ${msg.sender === 'me'
+                            <div className={`flex items-end gap-2 ${msg.sender === 'me' ? 'flex-row-reverse' : 'flex-row'}`}>
+                                <div
+                                    className={`max-w-[80%] md:max-w-[70%] rounded-2xl px-4 py-2 text-sm ${msg.sender === 'me'
                                         ? 'bg-primary-600 text-white rounded-br-none'
                                         : 'bg-white text-gray-900 shadow-sm rounded-bl-none'
-                                    }`}
-                            >
-                                <p>{msg.text}</p>
-                                <p className={`text-[10px] mt-1 text-right ${msg.sender === 'me' ? 'text-primary-100' : 'text-gray-400'
-                                    }`}>
-                                    {msg.time}
-                                </p>
+                                        }`}
+                                >
+                                    <p>{msg.text}</p>
+                                    <p className={`text-[10px] mt-1 text-right ${msg.sender === 'me' ? 'text-primary-100' : 'text-gray-400'
+                                        }`}>
+                                        {msg.time}
+                                    </p>
+                                </div>
+
+                                {/* V2: Delete Button */}
+                                {version === 'v2' && msg.sender === 'me' && (
+                                    <button
+                                        onClick={() => handleDeleteClick(msg)}
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-gray-400 hover:text-red-500"
+                                        title="Delete message"
+                                    >
+                                        <TrashIcon className="h-4 w-4" />
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ))}
@@ -125,6 +188,16 @@ export function Messages() {
                     </form>
                 </div>
             </div>
+
+            {/* V2: Delete Confirmation Modal */}
+            <ConfirmationModal
+                isOpen={!!messageToDelete}
+                onClose={() => setMessageToDelete(null)}
+                onConfirm={confirmDelete}
+                title="Delete Message?"
+                message="Are you sure you want to delete this message? This action cannot be undone."
+                confirmText="Delete"
+            />
         </Card>
     );
 }

@@ -5,26 +5,38 @@ import { Badge } from '../components/ui/Badge';
 import { Avatar } from '../components/ui/Avatar';
 import { currentUser, events, groups } from '../data/mockData';
 import { CalendarIcon, UserGroupIcon, MapPinIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
+import { useVersion } from '../context/VersionContext';
+import { cn } from '../utils/cn';
 
 export function Dashboard() {
+    const version = useVersion();
     const upcomingEvents = events.slice(0, 2);
     const recommendedGroups = groups.filter(g => !g.isMember).slice(0, 2);
 
     return (
         <div className="space-y-6">
             {/* Welcome Section */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className={cn(
+                "flex flex-col sm:flex-row sm:items-center justify-between gap-4",
+                version === 'v2' ? "mb-4 sm:mb-8" : ""
+            )}>
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
+                    <h1 className={cn(
+                        "font-bold text-gray-900",
+                        version === 'v2' ? "text-xl sm:text-2xl" : "text-2xl"
+                    )}>
                         Welcome back, {currentUser.name.split(' ')[0]}! 👋
                     </h1>
-                    <p className="text-gray-600 mt-1">
+                    <p className={cn(
+                        "text-gray-600 mt-1",
+                        version === 'v2' ? "text-sm sm:text-base" : ""
+                    )}>
                         Here's what's happening on campus today.
                     </p>
                 </div>
                 <div className="flex gap-3">
-                    <Button variant="secondary">Find Peers</Button>
-                    <Button>Explore Events</Button>
+                    <Button variant="secondary" size={version === 'v2' ? 'sm' : 'md'}>Find Peers</Button>
+                    <Button size={version === 'v2' ? 'sm' : 'md'}>Explore Events</Button>
                 </div>
             </div>
 

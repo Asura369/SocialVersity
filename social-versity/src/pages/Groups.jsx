@@ -6,15 +6,33 @@ import { Badge } from '../components/ui/Badge';
 import { Avatar } from '../components/ui/Avatar';
 import { groups } from '../data/mockData';
 import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline';
+import { useVersion } from '../context/VersionContext';
+import { useToast } from '../context/ToastContext';
+import { ConfirmationModal } from '../components/ui/Modal';
 
 export function Groups() {
+    const version = useVersion();
+    const { addToast } = useToast();
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState('all');
+
+    // State for Leave Group Modal
+    const [groupToLeave, setGroupToLeave] = useState(null);
 
     const filteredGroups = groups.filter(group =>
         group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         group.category.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const handleLeaveClick = (group) => {
+        setGroupToLeave(group);
+    };
+
+    const confirmLeave = () => {
+        addToast(`Left ${groupToLeave.name} successfully`, 'success');
+        setGroupToLeave(null);
+        // In a real app, we would update the state/backend here
+    };
 
     return (
         <div className="space-y-6">
@@ -85,18 +103,40 @@ export function Groups() {
                                             <Avatar key={i} size="sm" className="ring-2 ring-white" />
                                         ))}
                                     </div>
-                                    <Button
-                                        size="sm"
-                                        variant={group.isMember ? 'secondary' : 'primary'}
-                                    >
-                                        {group.isMember ? 'View' : 'Join'}
-                                    </Button>
+                                    <div className="flex gap-2">
+                                        {version === 'v2' && group.isMember && (
+                                            <Button
+                                                size="sm"
+                                                variant="danger" // Assuming danger variant exists or falls back
+                                                className="bg-red-50 text-red-600 hover:bg-red-100"
+                                                onClick={() => handleLeaveClick(group)}
+                                            >
+                                                Leave
+                                            </Button>
+                                        )}
+                                        <Button
+                                            size="sm"
+                                            variant={group.isMember ? 'secondary' : 'primary'}
+                                        >
+                                            {group.isMember ? 'View' : 'Join'}
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
                         </CardBody>
                     </Card>
                 ))}
             </div>
+
+            {/* Confirmation Modal for V2 */}
+            <ConfirmationModal
+                isOpen={!!groupToLeave}
+                onClose={() => setGroupToLeave(null)}
+                onConfirm={confirmLeave}
+                title="Leave Group?"
+                message={`Are you sure you want to leave ${groupToLeave?.name}? You won't receive updates from this group anymore.`}
+                confirmText="Leave Group"
+            />
         </div>
     );
 }

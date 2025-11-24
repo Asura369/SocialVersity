@@ -13,21 +13,25 @@ import { Messages } from './pages/Messages';
 import { Profile } from './pages/Profile';
 import { Safety } from './pages/Safety';
 
+import { ToastProvider } from './context/ToastContext';
+
 function AppRoutes() {
   return (
-    <Routes>
-      <Route path="landing" element={<LandingPage />} />
-      <Route path="onboarding" element={<Onboarding />} />
-      <Route path="/" element={<Layout />}>
-        <Route index element={<Dashboard />} />
-        <Route path="groups" element={<Groups />} />
-        <Route path="events" element={<Events />} />
-        <Route path="map" element={<Map />} />
-        <Route path="messages" element={<Messages />} />
-        <Route path="profile" element={<Profile />} />
-        <Route path="safety" element={<Safety />} />
-      </Route>
-    </Routes>
+    <ToastProvider>
+      <Routes>
+        <Route path="landing" element={<LandingPage />} />
+        <Route path="onboarding" element={<Onboarding />} />
+        <Route path="/" element={<Layout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="groups" element={<Groups />} />
+          <Route path="events" element={<Events />} />
+          <Route path="map" element={<Map />} />
+          <Route path="messages" element={<Messages />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="safety" element={<Safety />} />
+        </Route>
+      </Routes>
+    </ToastProvider>
   );
 }
 

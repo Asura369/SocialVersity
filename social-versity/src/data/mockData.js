@@ -89,3 +89,46 @@ export const messages = [
         unread: false,
     },
 ];
+
+export const mapLocations = [
+    {
+        id: 1,
+        name: 'Student Center',
+        type: 'Social',
+        coordinates: { x: 300, y: 200 },
+        description: 'Main hub for student activities, dining, and lounges.',
+        color: 'blue'
+    },
+    {
+        id: 2,
+        name: 'Library',
+        type: 'Academic',
+        coordinates: { x: 100, y: 100 },
+        description: '24/7 study areas and quiet zones.',
+        color: 'green'
+    },
+    {
+        id: 3,
+        name: 'Gymnasium',
+        type: 'Sports',
+        coordinates: { x: 550, y: 100 },
+        description: 'Fitness center, basketball courts, and pool.',
+        color: 'red'
+    },
+    {
+        id: 4,
+        name: 'Coffee Shop',
+        type: 'Social',
+        coordinates: { x: 400, y: 400 },
+        description: 'Best coffee on campus. Great for group meetings.',
+        color: 'blue'
+    },
+    {
+        id: 5,
+        name: 'Science Lab',
+        type: 'Academic',
+        coordinates: { x: 600, y: 300 },
+        description: 'State-of-the-art research facilities.',
+        color: 'green'
+    }
+];
