@@ -13,32 +13,58 @@ export function Dashboard() {
     const upcomingEvents = events.slice(0, 2);
     const recommendedGroups = groups.filter(g => !g.isMember).slice(0, 2);
 
+    // V2: Customize Welcome State
+    const [showWelcome, setShowWelcome] = React.useState(true);
+
     return (
         <div className="space-y-6">
             {/* Welcome Section */}
-            <div className={cn(
-                "flex flex-col sm:flex-row sm:items-center justify-between gap-4",
-                version === 'v2' ? "mb-4 sm:mb-8" : ""
-            )}>
-                <div>
-                    <h1 className={cn(
-                        "font-bold text-gray-900",
-                        version === 'v2' ? "text-xl sm:text-2xl" : "text-2xl"
-                    )}>
-                        Welcome back, {currentUser.name.split(' ')[0]}! 👋
-                    </h1>
-                    <p className={cn(
-                        "text-gray-600 mt-1",
-                        version === 'v2' ? "text-sm sm:text-base" : ""
-                    )}>
-                        Here's what's happening on campus today.
-                    </p>
+            {showWelcome && (
+                <div className={cn(
+                    "flex flex-col sm:flex-row sm:items-center justify-between gap-4",
+                    version === 'v2' ? "mb-4 sm:mb-8" : ""
+                )}>
+                    <div>
+                        <h1 className={cn(
+                            "font-bold text-gray-900",
+                            version === 'v2' ? "text-xl sm:text-2xl" : "text-2xl"
+                        )}>
+                            Welcome back, {currentUser.name.split(' ')[0]}! 👋
+                        </h1>
+                        <p className={cn(
+                            "text-gray-600 mt-1",
+                            version === 'v2' ? "text-sm sm:text-base" : ""
+                        )}>
+                            Here's what's happening on campus today.
+                        </p>
+                    </div>
+                    <div className="flex gap-3">
+                        <Button variant="secondary" size={version === 'v2' ? 'sm' : 'md'}>Find Peers</Button>
+                        <Button size={version === 'v2' ? 'sm' : 'md'}>Explore Events</Button>
+                        {version === 'v2' && (
+                            <button
+                                onClick={() => setShowWelcome(false)}
+                                className="text-gray-400 hover:text-gray-600 p-2"
+                                title="Dismiss Welcome"
+                            >
+                                ✕
+                            </button>
+                        )}
+                    </div>
                 </div>
-                <div className="flex gap-3">
-                    <Button variant="secondary" size={version === 'v2' ? 'sm' : 'md'}>Find Peers</Button>
-                    <Button size={version === 'v2' ? 'sm' : 'md'}>Explore Events</Button>
+            )}
+
+            {/* V2: Restore Welcome Button (if hidden) */}
+            {!showWelcome && version === 'v2' && (
+                <div className="flex justify-end">
+                    <button
+                        onClick={() => setShowWelcome(true)}
+                        className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                    >
+                        Show Welcome Banner
+                    </button>
                 </div>
-            </div>
+            )}
 
             {/* Stats / Quick Actions */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

@@ -4,7 +4,7 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Badge } from '../components/ui/Badge';
 import { Avatar } from '../components/ui/Avatar';
-import { groups } from '../data/mockData';
+import { groups as initialGroups } from '../data/mockData';
 import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline';
 import { useVersion } from '../context/VersionContext';
 import { useToast } from '../context/ToastContext';
@@ -15,23 +15,41 @@ export function Groups() {
     const { addToast } = useToast();
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState('all');
+    const [localGroups, setLocalGroups] = useState(initialGroups);
 
     // State for Leave Group Modal
     const [groupToLeave, setGroupToLeave] = useState(null);
 
-    const filteredGroups = groups.filter(group =>
+    const filteredGroups = localGroups.filter(group =>
         group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         group.category.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const handleJoinClick = (groupId) => {
+        setLocalGroups(prev => prev.map(g => {
+            if (g.id === groupId) {
+                return { ...g, isMember: true, members: g.members + 1 };
+            }
+            return g;
+        }));
+        if (version === 'v2') {
+            addToast('Joined group successfully!', 'success');
+        }
+    };
 
     const handleLeaveClick = (group) => {
         setGroupToLeave(group);
     };
 
     const confirmLeave = () => {
+        setLocalGroups(prev => prev.map(g => {
+            if (g.id === groupToLeave.id) {
+                return { ...g, isMember: false, members: g.members - 1 };
+            }
+            return g;
+        }));
         addToast(`Left ${groupToLeave.name} successfully`, 'success');
         setGroupToLeave(null);
-        // In a real app, we would update the state/backend here
     };
 
     return (
@@ -82,21 +100,21 @@ export function Groups() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredGroups.map(group => (
-                    <Card key={group.id} className="hover:shadow-md transition-shadow">
-                        <div className="h-24 bg-gradient-to-r from-primary-100 to-secondary-100" />
-                        <CardBody className="relative pt-0">
+                    <Card key={group.id} className="hover:shadow-md transition-shadow h-full flex flex-col">
+                        <div className="h-24 bg-gradient-to-r from-primary-100 to-secondary-100 flex-shrink-0" />
+                        <CardBody className="relative pt-0 flex-1 flex flex-col">
                             <div className="absolute -top-10 left-6">
                                 <Avatar src={group.image} alt={group.name} size="xl" className="ring-4 ring-white" />
                             </div>
-                            <div className="mt-8">
+                            <div className="mt-12 flex-1 flex flex-col">
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <h3 className="text-lg font-bold text-gray-900">{group.name}</h3>
-                                        <p className="text-sm text-gray-500">{group.members} members</p>
+                                        <p className="text-sm text-gray-500">{group.members.toLocaleString()} members</p>
                                     </div>
                                     <Badge variant="blue">{group.category}</Badge>
                                 </div>
-                                <p className="mt-3 text-sm text-gray-600 line-clamp-2">{group.description}</p>
+                                <p className="mt-3 text-sm text-gray-600 line-clamp-2 flex-grow">{group.description}</p>
                                 <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
                                     <div className="flex -space-x-2">
                                         {[1, 2, 3].map(i => (
@@ -104,22 +122,35 @@ export function Groups() {
                                         ))}
                                     </div>
                                     <div className="flex gap-2">
-                                        {version === 'v2' && group.isMember && (
-                                            <Button
-                                                size="sm"
-                                                variant="danger" // Assuming danger variant exists or falls back
-                                                className="bg-red-50 text-red-600 hover:bg-red-100"
-                                                onClick={() => handleLeaveClick(group)}
-                                            >
-                                                Leave
+                                        {/* V2: Persistent View Button */}
+                                        {version === 'v2' && (
+                                            <Button size="sm" variant="secondary">
+                                                View
                                             </Button>
                                         )}
-                                        <Button
-                                            size="sm"
-                                            variant={group.isMember ? 'secondary' : 'primary'}
-                                        >
-                                            {group.isMember ? 'View' : 'Join'}
-                                        </Button>
+
+                                        {group.isMember ? (
+                                            version === 'v2' ? (
+                                                <Button
+                                                    size="sm"
+                                                    variant="danger"
+                                                    className="bg-red-50 text-red-600 hover:bg-red-100"
+                                                    onClick={() => handleLeaveClick(group)}
+                                                >
+                                                    Leave
+                                                </Button>
+                                            ) : (
+                                                <Button size="sm" variant="secondary">View</Button>
+                                            )
+                                        ) : (
+                                            <Button
+                                                size="sm"
+                                                variant="primary"
+                                                onClick={() => handleJoinClick(group.id)}
+                                            >
+                                                Join
+                                            </Button>
+                                        )}
                                     </div>
                                 </div>
                             </div>

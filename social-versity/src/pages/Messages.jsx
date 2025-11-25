@@ -4,16 +4,20 @@ import { Avatar } from '../components/ui/Avatar';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { messages as initialMessages } from '../data/mockData';
-import { PaperAirplaneIcon, PhoneIcon, VideoCameraIcon, InformationCircleIcon, ArrowLeftIcon, TrashIcon } from '@heroicons/react/24/outline';
+import { PaperAirplaneIcon, PhoneIcon, VideoCameraIcon, InformationCircleIcon, ArrowLeftIcon, TrashIcon, PencilSquareIcon } from '@heroicons/react/24/outline';
 import { useVersion } from '../context/VersionContext';
 import { useToast } from '../context/ToastContext';
-import { ConfirmationModal } from '../components/ui/Modal';
+import { ConfirmationModal, Modal } from '../components/ui/Modal';
 import { cn } from '../utils/cn';
 
 export function Messages() {
     const version = useVersion();
     const { addToast } = useToast();
-    const [activeChat, setActiveChat] = useState(initialMessages[0]);
+
+    // State for conversations list (lifted from mockData to allow additions)
+    const [conversations, setConversations] = useState(initialMessages);
+    const [activeChat, setActiveChat] = useState(conversations[0]);
+
     const [replyText, setReplyText] = useState('');
     const [chatHistory, setChatHistory] = useState([
         { id: 1, sender: 'them', text: 'Hey! Are you going to the hackathon?', time: '9:30 AM' },
@@ -26,6 +30,13 @@ export function Messages() {
 
     // V2: Delete Message State
     const [messageToDelete, setMessageToDelete] = useState(null);
+
+    // V2: Edit Message State
+    const [messageToEdit, setMessageToEdit] = useState(null);
+    const [editContent, setEditContent] = useState('');
+
+    // V2: New Chat State
+    const [isNewChatOpen, setIsNewChatOpen] = useState(false);
 
     const handleChatSelect = (chat) => {
         setActiveChat(chat);
@@ -63,6 +74,45 @@ export function Messages() {
         setMessageToDelete(null);
     };
 
+    const handleEditClick = (msg) => {
+        setMessageToEdit(msg);
+        setEditContent(msg.text);
+    };
+
+    const saveEdit = () => {
+        setChatHistory(chatHistory.map(m =>
+            m.id === messageToEdit.id ? { ...m, text: editContent } : m
+        ));
+        addToast('Message updated', 'success');
+        setMessageToEdit(null);
+    };
+
+    const startNewChat = (user) => {
+        // Check if chat already exists
+        const existingChat = conversations.find(c => c.senderName === user.name);
+        if (existingChat) {
+            handleChatSelect(existingChat);
+        } else {
+            const newChat = {
+                id: `new_${Date.now()}`,
+                senderId: user.id,
+                senderName: user.name,
+                avatar: user.avatar,
+                content: 'Start a new conversation',
+                timestamp: new Date().toISOString(),
+                unread: false,
+            };
+            setConversations([newChat, ...conversations]);
+            setActiveChat(newChat);
+            setChatHistory([]); // Start with empty history
+            if (version === 'v2') {
+                setIsMobileChatOpen(true);
+            }
+        }
+        setIsNewChatOpen(false);
+        addToast(`Chat started with ${user.name}`, 'success');
+    };
+
     // V2: Conditional Classes for Mobile View
     const inboxClasses = version === 'v2'
         ? cn("w-full md:w-80 border-r border-gray-200 flex flex-col bg-white", isMobileChatOpen ? "hidden md:flex" : "flex")
@@ -77,11 +127,18 @@ export function Messages() {
             {/* Sidebar / Inbox */}
             <div className={inboxClasses}>
                 <div className="p-4 border-b border-gray-100">
-                    <h2 className="text-lg font-bold text-gray-900 mb-4">Messages</h2>
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-lg font-bold text-gray-900">Messages</h2>
+                        {version === 'v2' && (
+                            <Button size="sm" onClick={() => setIsNewChatOpen(true)} title="New Chat">
+                                <PencilSquareIcon className="h-5 w-5" />
+                            </Button>
+                        )}
+                    </div>
                     <Input placeholder="Search messages..." className="bg-gray-50" />
                 </div>
                 <div className="flex-1 overflow-y-auto">
-                    {initialMessages.map(msg => (
+                    {conversations.map(msg => (
                         <button
                             key={msg.id}
                             onClick={() => handleChatSelect(msg)}
@@ -158,15 +215,26 @@ export function Messages() {
                                     </p>
                                 </div>
 
-                                {/* V2: Delete Button */}
+                                {/* V2: Delete & Edit Buttons */}
                                 {version === 'v2' && msg.sender === 'me' && (
-                                    <button
-                                        onClick={() => handleDeleteClick(msg)}
-                                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-gray-400 hover:text-red-500"
-                                        title="Delete message"
-                                    >
-                                        <TrashIcon className="h-4 w-4" />
-                                    </button>
+                                    <div className="flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button
+                                            onClick={() => handleEditClick(msg)}
+                                            className="p-1 text-gray-400 hover:text-blue-500"
+                                            title="Edit message"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                            </svg>
+                                        </button>
+                                        <button
+                                            onClick={() => handleDeleteClick(msg)}
+                                            className="p-1 text-gray-400 hover:text-red-500"
+                                            title="Delete message"
+                                        >
+                                            <TrashIcon className="h-4 w-4" />
+                                        </button>
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -198,6 +266,57 @@ export function Messages() {
                 message="Are you sure you want to delete this message? This action cannot be undone."
                 confirmText="Delete"
             />
+
+            {/* V2: Edit Message Modal */}
+            {version === 'v2' && (
+                <ConfirmationModal
+                    isOpen={!!messageToEdit}
+                    onClose={() => setMessageToEdit(null)}
+                    onConfirm={saveEdit}
+                    title="Edit Message"
+                    confirmText="Save Changes"
+                    type="primary"
+                    message={
+                        <div className="mt-2">
+                            <Input
+                                value={editContent}
+                                onChange={(e) => setEditContent(e.target.value)}
+                                autoFocus
+                            />
+                        </div>
+                    }
+                />
+            )}
+
+            {/* V2: New Chat Modal */}
+            {version === 'v2' && (
+                <Modal
+                    isOpen={isNewChatOpen}
+                    onClose={() => setIsNewChatOpen(false)}
+                    title="New Message"
+                >
+                    <div className="space-y-4">
+                        <Input placeholder="Search users..." autoFocus />
+                        <div className="space-y-2">
+                            <p className="text-xs font-medium text-gray-500 uppercase">Suggested</p>
+                            {[
+                                { id: 'u4', name: 'Alex Johnson', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Alex' },
+                                { id: 'u5', name: 'Emily Davis', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emily' },
+                                { id: 'u6', name: 'Chris Lee', avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Chris' }
+                            ].map(user => (
+                                <button
+                                    key={user.id}
+                                    className="w-full flex items-center gap-3 p-2 hover:bg-gray-50 rounded-lg transition-colors text-left"
+                                    onClick={() => startNewChat(user)}
+                                >
+                                    <Avatar src={user.avatar} alt={user.name} size="sm" />
+                                    <span className="font-medium text-gray-900">{user.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </Modal>
+            )}
         </Card>
     );
 }
