@@ -55,6 +55,13 @@ function App() {
           </VersionProvider>
         } />
 
+        {/* Version 3 Routes */}
+        <Route path="/v3/*" element={
+          <VersionProvider>
+            <AppRoutes />
+          </VersionProvider>
+        } />
+
         {/* Catch all - redirect to version select */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

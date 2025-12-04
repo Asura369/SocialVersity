@@ -8,7 +8,7 @@ import { groups as initialGroups } from '../data/mockData';
 import { MagnifyingGlassIcon, FunnelIcon } from '@heroicons/react/24/outline';
 import { useVersion } from '../context/VersionContext';
 import { useToast } from '../context/ToastContext';
-import { ConfirmationModal } from '../components/ui/Modal';
+import { ConfirmationModal, Modal } from '../components/ui/Modal';
 
 export function Groups() {
     const version = useVersion();
@@ -20,10 +20,26 @@ export function Groups() {
     // State for Leave Group Modal
     const [groupToLeave, setGroupToLeave] = useState(null);
 
-    const filteredGroups = localGroups.filter(group =>
-        group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        group.category.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // V2: Filter State
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [selectedCategories, setSelectedCategories] = useState([]);
+    const [selectedTags, setSelectedTags] = useState([]);
+
+    const filteredGroups = localGroups.filter(group => {
+        // Search term filter
+        const matchesSearch = group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            group.category.toLowerCase().includes(searchTerm.toLowerCase());
+
+        // Category filter (v2 only)
+        const matchesCategory = version !== 'v2' || selectedCategories.length === 0 ||
+            selectedCategories.includes(group.category);
+
+        // Tag filter (v2 only) - for now using interests/tags from description
+        const matchesTags = version !== 'v2' || selectedTags.length === 0 ||
+            selectedTags.some(tag => group.description.toLowerCase().includes(tag.toLowerCase()));
+
+        return matchesSearch && matchesCategory && matchesTags;
+    });
 
     const handleJoinClick = (groupId) => {
         setLocalGroups(prev => prev.map(g => {
@@ -52,6 +68,30 @@ export function Groups() {
         setGroupToLeave(null);
     };
 
+    const handleCategoryToggle = (category) => {
+        setSelectedCategories(prev =>
+            prev.includes(category)
+                ? prev.filter(c => c !== category)
+                : [...prev, category]
+        );
+    };
+
+    const handleTagToggle = (tag) => {
+        setSelectedTags(prev =>
+            prev.includes(tag)
+                ? prev.filter(t => t !== tag)
+                : [...prev, tag]
+        );
+    };
+
+    const clearAllFilters = () => {
+        setSelectedCategories([]);
+        setSelectedTags([]);
+    };
+
+    const categories = ['Academic', 'Arts', 'Gaming', 'Sports', 'Technology', 'Social'];
+    const tags = ['Study', 'Competition', 'Creative', 'Fitness', 'Networking'];
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -75,9 +115,18 @@ export function Groups() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <Button variant="secondary" className="flex items-center gap-2">
+                <Button
+                    variant="secondary"
+                    className="flex items-center gap-2"
+                    onClick={() => version === 'v2' ? setIsFilterOpen(true) : null}
+                >
                     <FunnelIcon className="h-5 w-5" />
                     Filter
+                    {version === 'v2' && (selectedCategories.length > 0 || selectedTags.length > 0) && (
+                        <span className="ml-1 bg-primary-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                            {selectedCategories.length + selectedTags.length}
+                        </span>
+                    )}
                 </Button>
             </div>
 
@@ -168,6 +217,104 @@ export function Groups() {
                 message={`Are you sure you want to leave ${groupToLeave?.name}? You won't receive updates from this group anymore.`}
                 confirmText="Leave Group"
             />
+
+            {/* V2: Filter Modal */}
+            {version === 'v2' && (
+                <Modal
+                    isOpen={isFilterOpen}
+                    onClose={() => setIsFilterOpen(false)}
+                    title="Filter Groups"
+                >
+                    <div className="space-y-6">
+                        {/* Active Filters Display */}
+                        {(selectedCategories.length > 0 || selectedTags.length > 0) && (
+                            <div className="flex flex-wrap gap-2 pb-4 border-b border-gray-200">
+                                {selectedCategories.map(cat => (
+                                    <Badge key={cat} variant="blue" className="flex items-center gap-1">
+                                        {cat}
+                                        <button
+                                            onClick={() => handleCategoryToggle(cat)}
+                                            className="ml-1 hover:text-red-600"
+                                        >
+                                            ×
+                                        </button>
+                                    </Badge>
+                                ))}
+                                {selectedTags.map(tag => (
+                                    <Badge key={tag} variant="green" className="flex items-center gap-1">
+                                        {tag}
+                                        <button
+                                            onClick={() => handleTagToggle(tag)}
+                                            className="ml-1 hover:text-red-600"
+                                        >
+                                            ×
+                                        </button>
+                                    </Badge>
+                                ))}
+                                <button
+                                    onClick={clearAllFilters}
+                                    className="text-xs text-red-600 hover:text-red-700 font-medium"
+                                >
+                                    Clear All
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Categories */}
+                        <div>
+                            <h3 className="text-sm font-semibold text-gray-900 mb-3">Categories</h3>
+                            <div className="grid grid-cols-2 gap-2">
+                                {categories.map(category => (
+                                    <button
+                                        key={category}
+                                        onClick={() => handleCategoryToggle(category)}
+                                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${selectedCategories.includes(category)
+                                            ? 'bg-primary-600 text-white'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            }`}
+                                    >
+                                        {category}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Tags */}
+                        <div>
+                            <h3 className="text-sm font-semibold text-gray-900 mb-3">Interests & Tags</h3>
+                            <div className="flex flex-wrap gap-2">
+                                {tags.map(tag => (
+                                    <button
+                                        key={tag}
+                                        onClick={() => handleTagToggle(tag)}
+                                        className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${selectedTags.includes(tag)
+                                            ? 'bg-green-600 text-white'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            }`}
+                                    >
+                                        {tag}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+                            <p className="text-sm text-gray-600">
+                                {filteredGroups.length} group{filteredGroups.length !== 1 ? 's' : ''} found
+                            </p>
+                            <div className="flex gap-2">
+                                <Button variant="secondary" onClick={clearAllFilters} size="sm">
+                                    Reset
+                                </Button>
+                                <Button onClick={() => setIsFilterOpen(false)} size="sm">
+                                    Apply Filters
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </Modal>
+            )}
         </div>
     );
 }
