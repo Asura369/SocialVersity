@@ -30,12 +30,12 @@ export function Groups() {
         const matchesSearch = group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             group.category.toLowerCase().includes(searchTerm.toLowerCase());
 
-        // Category filter (v2 only)
-        const matchesCategory = version !== 'v2' || selectedCategories.length === 0 ||
+        // Category filter (v2 and v3)
+        const matchesCategory = (version !== 'v2' && version !== 'v3') || selectedCategories.length === 0 ||
             selectedCategories.includes(group.category);
 
-        // Tag filter (v2 only) - for now using interests/tags from description
-        const matchesTags = version !== 'v2' || selectedTags.length === 0 ||
+        // Tag filter (v2 and v3) - for now using interests/tags from description
+        const matchesTags = (version !== 'v2' && version !== 'v3') || selectedTags.length === 0 ||
             selectedTags.some(tag => group.description.toLowerCase().includes(tag.toLowerCase()));
 
         return matchesSearch && matchesCategory && matchesTags;
@@ -118,11 +118,11 @@ export function Groups() {
                 <Button
                     variant="secondary"
                     className="flex items-center gap-2"
-                    onClick={() => version === 'v2' ? setIsFilterOpen(true) : null}
+                    onClick={() => (version === 'v2' || version === 'v3') ? setIsFilterOpen(true) : null}
                 >
                     <FunnelIcon className="h-5 w-5" />
                     Filter
-                    {version === 'v2' && (selectedCategories.length > 0 || selectedTags.length > 0) && (
+                    {(version === 'v2' || version === 'v3') && (selectedCategories.length > 0 || selectedTags.length > 0) && (
                         <span className="ml-1 bg-primary-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                             {selectedCategories.length + selectedTags.length}
                         </span>
@@ -218,8 +218,8 @@ export function Groups() {
                 confirmText="Leave Group"
             />
 
-            {/* V2: Filter Modal */}
-            {version === 'v2' && (
+            {/* V2/V3: Filter Modal */}
+            {(version === 'v2' || version === 'v3') && (
                 <Modal
                     isOpen={isFilterOpen}
                     onClose={() => setIsFilterOpen(false)}

@@ -7,12 +7,14 @@ import {
     MapIcon,
     ChatBubbleLeftRightIcon,
     UserIcon,
-    ShieldCheckIcon
+    ShieldCheckIcon,
+    UsersIcon,
+    ChatBubbleBottomCenterTextIcon
 } from '@heroicons/react/24/outline';
 import { cn } from '../../utils/cn';
 import { useVersion } from '../../context/VersionContext';
 
-const navigation = [
+const navigationV1V2 = [
     { name: 'Dashboard', href: '', icon: HomeIcon },
     { name: 'Groups', href: 'groups', icon: UserGroupIcon },
     { name: 'Events', href: 'events', icon: CalendarIcon },
@@ -22,8 +24,21 @@ const navigation = [
     { name: 'Safety', href: 'safety', icon: ShieldCheckIcon },
 ];
 
+const navigationV3 = [
+    { name: 'Dashboard', href: '', icon: HomeIcon },
+    { name: 'Groups', href: 'groups', icon: UserGroupIcon },
+    { name: 'Events', href: 'events', icon: CalendarIcon },
+    { name: 'Connect', href: 'connect', icon: UsersIcon },
+    { name: 'Forum', href: 'forum', icon: ChatBubbleBottomCenterTextIcon },
+    { name: 'Map', href: 'map', icon: MapIcon },
+    { name: 'Messages', href: 'messages', icon: ChatBubbleLeftRightIcon },
+    { name: 'Profile', href: 'profile', icon: UserIcon },
+    { name: 'Safety', href: 'safety', icon: ShieldCheckIcon },
+];
+
 export function Sidebar({ className }) {
     const version = useVersion();
+    const navigation = version === 'v3' ? navigationV3 : navigationV1V2;
 
     return (
         <aside className={cn("w-64 bg-white border-r border-gray-200 hidden lg:flex flex-col h-[calc(100vh-4rem)] sticky top-16", className)}>

@@ -12,6 +12,8 @@ import { Map } from './pages/Map';
 import { Messages } from './pages/Messages';
 import { Profile } from './pages/Profile';
 import { Safety } from './pages/Safety';
+import { Connect } from './pages/Connect';
+import { Forum } from './pages/Forum';
 
 import { ToastProvider } from './context/ToastContext';
 
@@ -25,6 +27,8 @@ function AppRoutes() {
           <Route index element={<Dashboard />} />
           <Route path="groups" element={<Groups />} />
           <Route path="events" element={<Events />} />
+          <Route path="connect" element={<Connect />} />
+          <Route path="forum" element={<Forum />} />
           <Route path="map" element={<Map />} />
           <Route path="messages" element={<Messages />} />
           <Route path="profile" element={<Profile />} />

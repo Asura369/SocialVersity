@@ -2,15 +2,60 @@ import React, { useState } from 'react';
 import { Card, CardBody, CardHeader } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { ShieldExclamationIcon, BookOpenIcon, LifebuoyIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { ShieldExclamationIcon, BookOpenIcon, LifebuoyIcon, CheckCircleIcon, ArrowDownTrayIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
+import { useVersion } from '../context/VersionContext';
 
 export function Safety() {
+    const version = useVersion();
     const [reportSubmitted, setReportSubmitted] = useState(false);
+    const [reportData, setReportData] = useState(null);
 
     const handleReport = (e) => {
         e.preventDefault();
+        const formData = new FormData(e.target);
+        const data = {
+            reason: formData.get('reason'),
+            link: formData.get('link'),
+            description: formData.get('description'),
+            timestamp: new Date().toLocaleString(),
+            reportId: `RPT-${Date.now()}`,
+        };
+        setReportData(data);
         setReportSubmitted(true);
-        setTimeout(() => setReportSubmitted(false), 3000);
+
+        // V1/V2: Auto-hide after 3 seconds
+        if (version !== 'v3') {
+            setTimeout(() => setReportSubmitted(false), 3000);
+        }
+    };
+
+    const handleDownloadReport = () => {
+        const reportText = `
+SAFETY REPORT
+Report ID: ${reportData.reportId}
+Submitted: ${reportData.timestamp}
+
+Reason: ${reportData.reason}
+Link: ${reportData.link || 'N/A'}
+Description: ${reportData.description}
+
+This report has been submitted to the SocialVersity Safety Team.
+        `;
+
+        const blob = new Blob([reportText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `safety-report-${reportData.reportId}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    };
+
+    const handleNewReport = () => {
+        setReportSubmitted(false);
+        setReportData(null);
     };
 
     return (
@@ -37,13 +82,44 @@ export function Safety() {
                                 </div>
                                 <h3 className="text-xl font-bold text-gray-900">Report Submitted</h3>
                                 <p className="text-gray-600 mt-2">Thank you for helping keep our community safe. Our team will review this shortly.</p>
+
+                                {/* V3: Enhanced Confirmation */}
+                                {version === 'v3' && (
+                                    <div className="mt-6 space-y-4">
+                                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-left">
+                                            <div className="flex items-start gap-3">
+                                                <EnvelopeIcon className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                                                <div>
+                                                    <p className="text-sm font-medium text-blue-900">Email Confirmation Sent</p>
+                                                    <p className="text-sm text-blue-700 mt-1">
+                                                        A copy of your report (ID: {reportData.reportId}) has been sent to your email for your records.
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex gap-3 justify-center">
+                                            <Button
+                                                variant="secondary"
+                                                onClick={handleDownloadReport}
+                                                className="flex items-center gap-2"
+                                            >
+                                                <ArrowDownTrayIcon className="h-5 w-5" />
+                                                Download Report
+                                            </Button>
+                                            <Button onClick={handleNewReport}>
+                                                Submit Another Report
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <form onSubmit={handleReport} className="space-y-4">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-1">
                                         <label className="block text-sm font-medium text-gray-700">Reason</label>
-                                        <select className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm p-2 border">
+                                        <select name="reason" className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm p-2 border">
                                             <option>Harassment or Bullying</option>
                                             <option>Hate Speech</option>
                                             <option>Spam or Scam</option>
@@ -51,11 +127,12 @@ export function Safety() {
                                             <option>Other</option>
                                         </select>
                                     </div>
-                                    <Input label="Link to Content (Optional)" placeholder="https://..." />
+                                    <Input name="link" label="Link to Content (Optional)" placeholder="https://..." />
                                 </div>
                                 <div className="space-y-1">
                                     <label className="block text-sm font-medium text-gray-700">Description</label>
                                     <textarea
+                                        name="description"
                                         rows={4}
                                         className="block w-full rounded-md border-gray-300 shadow-sm focus:border-red-500 focus:ring-red-500 sm:text-sm p-2 border"
                                         placeholder="Please provide details about what happened..."

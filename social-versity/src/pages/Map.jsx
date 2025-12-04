@@ -41,50 +41,81 @@ export function Map() {
 
                         {/* Campus Buildings */}
                         {/* Student Center */}
-                        <path
-                            d="M 300 200 L 500 200 L 500 350 L 300 350 Z"
-                            fill="#dbeafe"
-                            stroke="#3b82f6"
-                            strokeWidth="2"
-                            className="cursor-pointer hover:fill-blue-200 transition-colors"
-                            onClick={() => setSelectedLocation(mapLocations.find(l => l.id === 1))}
-                        />
+                        <g onClick={() => setSelectedLocation(mapLocations.find(l => l.id === 1))} className="cursor-pointer">
+                            <path
+                                d="M 300 200 L 500 200 L 500 350 L 300 350 Z"
+                                fill="#dbeafe"
+                                stroke="#3b82f6"
+                                strokeWidth="2"
+                                className="hover:fill-blue-200 transition-colors"
+                            />
+                            {version === 'v3' && (
+                                <text x="400" y="275" textAnchor="middle" className="text-sm font-semibold fill-primary-700 pointer-events-none">
+                                    Student Center
+                                </text>
+                            )}
+                        </g>
 
                         {/* Library */}
-                        <path
-                            d="M 100 100 L 250 100 L 250 250 L 100 250 Z"
-                            fill="#dcfce7"
-                            stroke="#22c55e"
-                            strokeWidth="2"
-                            className="cursor-pointer hover:fill-green-200 transition-colors"
-                            onClick={() => setSelectedLocation(mapLocations.find(l => l.id === 2))}
-                        />
+                        <g onClick={() => setSelectedLocation(mapLocations.find(l => l.id === 2))} className="cursor-pointer">
+                            <path
+                                d="M 100 100 L 250 100 L 250 250 L 100 250 Z"
+                                fill="#dcfce7"
+                                stroke="#22c55e"
+                                strokeWidth="2"
+                                className="hover:fill-green-200 transition-colors"
+                            />
+                            {version === 'v3' && (
+                                <text x="175" y="175" textAnchor="middle" className="text-sm font-semibold fill-secondary-700 pointer-events-none">
+                                    Library
+                                </text>
+                            )}
+                        </g>
 
                         {/* Gym */}
-                        <path
-                            d="M 550 100 L 700 100 L 700 200 L 550 200 Z"
-                            fill="#fee2e2"
-                            stroke="#ef4444"
-                            strokeWidth="2"
-                            className="cursor-pointer hover:fill-red-200 transition-colors"
-                            onClick={() => setSelectedLocation(mapLocations.find(l => l.id === 3))}
-                        />
+                        <g onClick={() => setSelectedLocation(mapLocations.find(l => l.id === 3))} className="cursor-pointer">
+                            <path
+                                d="M 550 100 L 700 100 L 700 200 L 550 200 Z"
+                                fill="#fee2e2"
+                                stroke="#ef4444"
+                                strokeWidth="2"
+                                className="hover:fill-red-200 transition-colors"
+                            />
+                            {version === 'v3' && (
+                                <text x="625" y="150" textAnchor="middle" className="text-sm font-semibold fill-red-700 pointer-events-none">
+                                    Recreation Center
+                                </text>
+                            )}
+                        </g>
 
                         {/* Pins */}
-                        {mapLocations.map(loc => (
-                            <g
-                                key={loc.id}
-                                transform={`translate(${loc.coordinates.x}, ${loc.coordinates.y})`}
-                                className="cursor-pointer group"
-                                onClick={() => setSelectedLocation(loc)}
-                            >
-                                <circle r="6" fill={loc.color === 'blue' ? '#3b82f6' : loc.color === 'green' ? '#22c55e' : '#ef4444'} className="animate-pulse" />
-                                <circle r="12" fill={loc.color === 'blue' ? '#3b82f6' : loc.color === 'green' ? '#22c55e' : '#ef4444'} opacity="0.2" />
-                                <text y="-15" x="0" textAnchor="middle" className="text-xs font-bold fill-gray-700 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none bg-white">
-                                    {loc.name}
-                                </text>
-                            </g>
-                        ))}
+                        {mapLocations.map(loc => {
+                            // In V3, hide labels for locations that have building areas (ids 1, 2, 3)
+                            const hasAreaLabel = version === 'v3' && [1, 2, 3].includes(loc.id);
+
+                            return (
+                                <g
+                                    key={loc.id}
+                                    transform={`translate(${loc.coordinates.x}, ${loc.coordinates.y})`}
+                                    className="cursor-pointer group"
+                                    onClick={() => setSelectedLocation(loc)}
+                                >
+                                    <circle r="6" fill={loc.color === 'blue' ? '#3b82f6' : loc.color === 'green' ? '#22c55e' : '#ef4444'} className="animate-pulse" />
+                                    <circle r="12" fill={loc.color === 'blue' ? '#3b82f6' : loc.color === 'green' ? '#22c55e' : '#ef4444'} opacity="0.2" />
+                                    {!hasAreaLabel && (
+                                        <text
+                                            y="-15"
+                                            x="0"
+                                            textAnchor="middle"
+                                            className={`text-xs font-bold fill-gray-700 pointer-events-none bg-white ${version === 'v3' ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                                                } transition-opacity`}
+                                        >
+                                            {loc.name}
+                                        </text>
+                                    )}
+                                </g>
+                            );
+                        })}
                     </svg>
                 </div>
 

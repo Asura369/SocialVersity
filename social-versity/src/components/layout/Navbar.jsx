@@ -1,12 +1,37 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { MagnifyingGlassIcon, BellIcon } from '@heroicons/react/24/outline';
+import React, { useState, useRef, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { MagnifyingGlassIcon, BellIcon, UserIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline';
 import { Avatar } from '../ui/Avatar';
 import { currentUser } from '../../data/mockData';
 import { useVersion } from '../../context/VersionContext';
 
 export function Navbar({ onMenuClick }) {
     const version = useVersion();
+    const navigate = useNavigate();
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const menuRef = useRef(null);
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setIsUserMenuOpen(false);
+            }
+        };
+
+        if (isUserMenuOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isUserMenuOpen]);
+
+    const handleSignOut = () => {
+        // Navigate to version select page
+        navigate('/');
+    };
 
     return (
         <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
@@ -56,12 +81,47 @@ export function Navbar({ onMenuClick }) {
                             <span className="absolute top-2 right-2 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
                         </button>
 
-                        <div className="flex items-center gap-3 pl-2 border-l border-gray-200">
+                        <div className="relative flex items-center gap-3 pl-2 border-l border-gray-200" ref={menuRef}>
                             <div className="hidden sm:block text-right">
                                 <p className="text-sm font-medium text-gray-900">{currentUser.name}</p>
                                 <p className="text-xs text-gray-500">{currentUser.major}</p>
                             </div>
-                            <Avatar src={currentUser.avatar} alt={currentUser.name} />
+
+                            {/* V3: Clickable Avatar with Dropdown */}
+                            {version === 'v3' ? (
+                                <>
+                                    <button
+                                        onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                                        className="focus:outline-none focus:ring-2 focus:ring-primary-500 rounded-full"
+                                    >
+                                        <Avatar src={currentUser.avatar} alt={currentUser.name} />
+                                    </button>
+
+                                    {/* Dropdown Menu */}
+                                    {isUserMenuOpen && (
+                                        <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 animate-fadeIn">
+                                            <Link
+                                                to={`/${version}/profile`}
+                                                className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                                                onClick={() => setIsUserMenuOpen(false)}
+                                            >
+                                                <UserIcon className="h-5 w-5 text-gray-400" />
+                                                <span>View Profile</span>
+                                            </Link>
+                                            <div className="border-t border-gray-100 my-1"></div>
+                                            <button
+                                                onClick={handleSignOut}
+                                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                                            >
+                                                <ArrowRightOnRectangleIcon className="h-5 w-5" />
+                                                <span>Sign Out</span>
+                                            </button>
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <Avatar src={currentUser.avatar} alt={currentUser.name} />
+                            )}
                         </div>
                     </div>
                 </div>
