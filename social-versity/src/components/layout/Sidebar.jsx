@@ -16,22 +16,22 @@ import { useVersion } from '../../context/VersionContext';
 
 const navigationV1V2 = [
     { name: 'Dashboard', href: '', icon: HomeIcon },
+    { name: 'Messages', href: 'messages', icon: ChatBubbleLeftRightIcon },
     { name: 'Groups', href: 'groups', icon: UserGroupIcon },
     { name: 'Events', href: 'events', icon: CalendarIcon },
     { name: 'Map', href: 'map', icon: MapIcon },
-    { name: 'Messages', href: 'messages', icon: ChatBubbleLeftRightIcon },
     { name: 'Profile', href: 'profile', icon: UserIcon },
     { name: 'Safety', href: 'safety', icon: ShieldCheckIcon },
 ];
 
 const navigationV3 = [
     { name: 'Dashboard', href: '', icon: HomeIcon },
+    { name: 'Messages', href: 'messages', icon: ChatBubbleLeftRightIcon },
+    { name: 'Connect', href: 'connect', icon: UsersIcon },
     { name: 'Groups', href: 'groups', icon: UserGroupIcon },
     { name: 'Events', href: 'events', icon: CalendarIcon },
-    { name: 'Connect', href: 'connect', icon: UsersIcon },
     { name: 'Forum', href: 'forum', icon: ChatBubbleBottomCenterTextIcon },
     { name: 'Map', href: 'map', icon: MapIcon },
-    { name: 'Messages', href: 'messages', icon: ChatBubbleLeftRightIcon },
     { name: 'Profile', href: 'profile', icon: UserIcon },
     { name: 'Safety', href: 'safety', icon: ShieldCheckIcon },
 ];
@@ -47,6 +47,7 @@ export function Sidebar({ className }) {
                     <NavLink
                         key={item.name}
                         to={`/${version}/${item.href}`}
+                        end={item.href === ''}
                         className={({ isActive }) => cn(
                             'group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors',
                             isActive
